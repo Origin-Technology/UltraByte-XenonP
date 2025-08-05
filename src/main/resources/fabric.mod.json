@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "sydney",
+	"version": "${version}",
+	"name": "UltraByte",
+	"description": "UltraByte is a Minecraft utility mod aimed at anarchy servers, giving you useful features for combat and utility.",
+	"authors": [
+		"CNiuRen",
+		"Aidan",
+		"p4nda",
+		"TheNano"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "GPL-3.0",
+	"icon": "assets/opan/icon.png",
+	"environment": "*",
+	"accessWidener" : "opan.accesswidener",
+	"entrypoints": {
+		"main": [
+          "dev.opan.UltraByte"
+		]
+	},
+	"mixins": [
+    "opan.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.2",
+		"minecraft": "~1.21.4",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
