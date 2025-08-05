@@ -72,7 +72,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 loom {
-	accessWidenerPath = file("src/main/resources/opan.accesswidener")
+	accessWidenerPath = file("src/main/resources/ultrabyte.accesswidener")
 }
 
 java {
