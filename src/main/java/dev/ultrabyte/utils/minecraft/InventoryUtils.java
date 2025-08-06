@@ -8,9 +8,15 @@ import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.screen.ingame.ShulkerBoxScreen;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.item.*;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class InventoryUtils implements IMinecraft {
     public static String[] SWITCH_MODES = new String[]{"None", "Normal", "Silent", "AltPickup", "AltSwap"};
@@ -142,6 +148,67 @@ public class InventoryUtils implements IMinecraft {
         }
 
         return bestSlot;
+    }
+
+    public static ItemStack getStackInSlot(int i) {
+        return mc.player.getInventory().getStack(i);
+    }
+
+    public static int getPotionCount(StatusEffect targetEffect) {
+        int count = 0;
+        for (int i = 0; i < 45; ++i) {
+            ItemStack itemStack = mc.player.getInventory().getStack(i);
+            if (!itemStack.isOf(Items.SPLASH_POTION)) continue;
+            List<StatusEffectInstance> effects = getPotionEffects(itemStack);
+            for (StatusEffectInstance effect : effects) {
+                if (effect.getEffectType().value() == targetEffect) {
+                    count += itemStack.getCount();
+                    break;
+                }
+            }
+        }
+        return count;
+    }
+
+    public static int findPotionInventorySlot(StatusEffect targetEffect) {
+        for (int i = 0; i < 45; ++i) {
+            ItemStack itemStack = mc.player.getInventory().getStack(i);
+            if (!itemStack.isOf(Items.SPLASH_POTION)) continue;
+            List<StatusEffectInstance> effects = getPotionEffects(itemStack);
+            for (StatusEffectInstance effect : effects) {
+                if (effect.getEffectType().value() == targetEffect) {
+                    return i < 9 ? i + 36 : i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public static int findPotion(StatusEffect targetEffect) {
+        for (int i = 0; i < 9; ++i) {
+            ItemStack itemStack = getStackInSlot(i);
+            if (!itemStack.isOf(Items.SPLASH_POTION)) continue;
+            List<StatusEffectInstance> effects = getPotionEffects(itemStack);
+            for (StatusEffectInstance effect : effects) {
+                if (effect.getEffectType().value() == targetEffect) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private static List<StatusEffectInstance> getPotionEffects(ItemStack itemStack) {
+        var potionContents = itemStack.get(DataComponentTypes.POTION_CONTENTS);
+        if (potionContents != null) {
+            Iterable<StatusEffectInstance> effects = potionContents.getEffects();
+            List<StatusEffectInstance> list = new ArrayList<>();
+            for (StatusEffectInstance effect : effects) {
+                list.add(effect);
+            }
+            return list;
+        }
+        return List.of();
     }
 
     public static int findBestSword(int start, int end) {

@@ -122,7 +122,7 @@ public class MainMenuScreen extends Screen implements IMinecraft {
         }
 
         Color titleColor = ColorUtils.getRainbow(2L, 0.7f, 1.0f, (int)(255 * titleAlpha), width/2*5L);
-        drawText(context, Formatting.WHITE + "O" + Formatting.RESET + "pan", width/2f - UltraByte.FONT_MANAGER.getWidth("UltraByte"), height/2f - UltraByte.FONT_MANAGER.getHeight()*2 - 5, 2, titleColor);
+        drawText(context, Formatting.WHITE + "U" + Formatting.RESET + "ltrabyte", width/2f - UltraByte.FONT_MANAGER.getWidth("UltraByte"), height/2f - UltraByte.FONT_MANAGER.getHeight()*2 - 5, 2, titleColor);
 
         String date = new SimpleDateFormat("MM/dd/yy").format(new Date()) + " " + new SimpleDateFormat("hh:mm aa").format(new Date());
         Color timeColor = new Color(Color.GRAY.getRed(), Color.GRAY.getGreen(), Color.GRAY.getBlue(), (int)(255 * textAlpha));

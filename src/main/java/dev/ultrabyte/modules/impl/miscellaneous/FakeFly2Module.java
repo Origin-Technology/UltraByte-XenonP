@@ -45,7 +45,7 @@ public class FakeFly2Module
         }
         if (blockJump.getValue()) {
             if (!(mc.world.getBlockState(getFacePos()).getBlock() == Blocks.AIR)
-                    && !(mc.world.getBlockState(getFacePos()).getBlock() == Blocks.WATER && !(mc.world.getBlockState(getFacePos()).getBlock() == Blocks.LAVA))) {
+                    && !(mc.world.getBlockState(getFacePos()).getBlock() == Blocks.WATER || (mc.world.getBlockState(getFacePos()).getBlock() == Blocks.LAVA))) {
                 int prevSlot = mc.player.getInventory().selectedSlot;
                 int pearl = InventoryUtils.find(Items.ENDER_PEARL);
                 if (pearl != -1) {
@@ -59,6 +59,7 @@ public class FakeFly2Module
             // mc.options.rightKey.isPressed() mc.options.jumpKeyPressssssss motherfucker
         boolean trigger = false;
         if (motion.getValue()) {
+
 
             // 检测用户按键状态(空格和前进都行 )
             if (mc.options.forwardKey.isPressed()) {
@@ -103,6 +104,7 @@ public class FakeFly2Module
                         }
                     }
                 }
+
             }
         }
         if (!(mc.options.forwardKey.isPressed() || mc.options.backKey.isPressed() || mc.options.leftKey.isPressed() || mc.options.rightKey.isPressed() || mc.options.jumpKey.isPressed()) && motion.getValue()
