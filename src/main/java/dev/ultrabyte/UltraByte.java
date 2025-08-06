@@ -24,8 +24,8 @@ public class UltraByte implements ModInitializer {
 	public static final String MOD_ID = "ultrabyte";
 	public static final String MOD_VERSION = "Beta " + BuildConstants.MOD_VERSION;
 	public static final String MINECRAFT_VERSION = BuildConstants.MINECRAFT_VERSION;
-	public static final String GIT_HASH = "SEX" /*BuildConstants.GIT_HASH*/;
-	public static final String GIT_REVISION = "HOT" /*BuildConstants.GIT_REVISION*/;
+	public static final String GIT_HASH = BuildConstants.GIT_HASH;
+	public static final String GIT_REVISION = BuildConstants.GIT_REVISION;
 	public static final long UPTIME = System.currentTimeMillis();
 
 	public static final EventHandler EVENT_HANDLER = new EventHandler();
