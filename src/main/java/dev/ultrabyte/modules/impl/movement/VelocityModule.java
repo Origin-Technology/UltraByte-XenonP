@@ -3,6 +3,7 @@ package dev.ultrabyte.modules.impl.movement;
 
 import dev.ultrabyte.UltraByte;
 import dev.ultrabyte.events.SubscribeEvent;
+import dev.ultrabyte.events.impl.PacketReceiveAsyncEvent;
 import dev.ultrabyte.events.impl.PacketReceiveSyncEvent;
 import dev.ultrabyte.events.impl.PacketSendEvent;
 import dev.ultrabyte.events.impl.TickEvent;
@@ -10,6 +11,7 @@ import dev.ultrabyte.mixins.accessors.EntityVelocityUpdateS2CPacketAccessor;
 import dev.ultrabyte.mixins.accessors.Vec3dAccessor;
 import dev.ultrabyte.modules.Module;
 import dev.ultrabyte.modules.RegisterModule;
+import dev.ultrabyte.modules.impl.core.RotationsModule;
 import dev.ultrabyte.settings.impl.BooleanSetting;
 import dev.ultrabyte.settings.impl.CategorySetting;
 import dev.ultrabyte.settings.impl.ModeSetting;
@@ -24,10 +26,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.projectile.FishingBobberEntity;
 import net.minecraft.network.packet.c2s.common.KeepAliveC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket;
+import net.minecraft.network.packet.c2s.play.*;
 import net.minecraft.network.packet.s2c.common.CommonPingS2CPacket;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.sound.SoundCategory;
@@ -44,7 +43,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 @RegisterModule(name = "Velocity", description = "Modifies the amount of knockback that you receive.", category = Module.Category.MOVEMENT)
 public class VelocityModule extends Module {
-    public ModeSetting mode = new ModeSetting("Mode", "The method that will be used to achieve the knockback modification.", "Normal", new String[]{"Normal", "Cancel", "Grim", "NewGrim","Watchdog", "WallCancel"});
+    public ModeSetting mode = new ModeSetting("Mode", "The method that will be used to achieve the knockback modification.", "Normal", new String[]{"Normal", "Cancel","NewGrim","Watchdog"});
+    public ModeSetting modes = new ModeSetting("GrimWallMode", "The method that will be used to achieve the knockback modification.", new ModeSetting.Visibility(mode, "NewGrim"),"WallNormal", new String[]{"WallNormal", "WallCancel","WallNewGrim"});
 
     public NumberSetting horizontal = new NumberSetting("Horizontal", "The amount of horizontal knockback that you will receive.", new ModeSetting.Visibility(mode, "Normal", "Grim"), 0, 0, 100);
     public NumberSetting vertical = new NumberSetting("Vertical", "The amount of vertical knockback that you will receive.", new ModeSetting.Visibility(mode, "Normal", "Grim"), 0, 0, 100);
@@ -57,6 +57,9 @@ public class VelocityModule extends Module {
     public BooleanSetting antiLiquidPush = new BooleanSetting("AntiLiquidPush", "Liquids", "Prevents liquids from pushing you.", new CategorySetting.Visibility(antiPushCategory), false);
     public BooleanSetting antiBlockPush = new BooleanSetting("AntiBlockPush", "Blocks", "Prevents you from being pushed outside of blocks.", new CategorySetting.Visibility(antiPushCategory), true);
     public BooleanSetting antiFishingRod = new BooleanSetting("AntiFishingRod", "FishingRods", "Prevents fishing rods from pushing you.", new CategorySetting.Visibility(antiPushCategory), false);
+    public BooleanSetting customSkip = new BooleanSetting("CustomSkip","when the server does't reply the wrong command, u may use it.",new ModeSetting.Visibility(mode,"NewGrim"),false);
+    public NumberSetting skipTicks = new NumberSetting("CustomSkipTicks","ticks to skip",new ModeSetting.Visibility(mode,"NewGrim"),4,3,6);
+    public BooleanSetting wall = new BooleanSetting("MoveGrim off ", "After closing, it is a wall-penetrating counterattack retreat; there is no counter mode outside the wall..",new ModeSetting.Visibility(mode, "NewGrim"), true);
 
     private boolean cancel;
     private boolean go;
@@ -68,6 +71,10 @@ public class VelocityModule extends Module {
     public int updates = 0;
     private int ticksToSkip = 0;
     private int ticksToUpdate = 0;
+
+    private int skips = 0;
+    private boolean accept = false;
+    private boolean skipping = false;
     private boolean needSkips = false;
     //  private final LinkedBlockingDeque<Packet<net.minecraft.client.network.ClientPlayNetworkHandler>> s32s = new LinkedBlockingDeque<>();
     private final LinkedBlockingDeque<CommonPingS2CPacket> s32s = new LinkedBlockingDeque<>();
@@ -104,12 +111,64 @@ public class VelocityModule extends Module {
 
         cancel = false;
     }
-
+    @SubscribeEvent
+    public void onPacketSyncReceive(PacketReceiveAsyncEvent event) {
+        if (mc.world != null) {
+            if (mc.player != null) {
+                if (event.getPacket() instanceof EntityVelocityUpdateS2CPacket packet) {
+                    if (packet.getEntityId() != mc.player.getId()) return;
+                    switch (modes.getValue()) {
+                        case "WallNormal" -> {
+                            if (isInsideBlock()) {
+                                if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L))
+                                    return;
+                                ((EntityVelocityUpdateS2CPacketAccessor) packet).setVelocityX((int) (((packet.getVelocityX() / 8000.0 - mc.player.getVelocity().x) * (horizontal.getValue().doubleValue() / 100.0)) * 8000 + mc.player.getVelocity().x * 8000));
+                                ((EntityVelocityUpdateS2CPacketAccessor) packet).setVelocityY((int) (((packet.getVelocityY() / 8000.0 - mc.player.getVelocity().y) * (vertical.getValue().doubleValue() / 100.0)) * 8000 + mc.player.getVelocity().y * 8000));
+                                ((EntityVelocityUpdateS2CPacketAccessor) packet).setVelocityZ((int) (((packet.getVelocityZ() / 8000.0 - mc.player.getVelocity().z) * (horizontal.getValue().doubleValue() / 100.0)) * 8000 + mc.player.getVelocity().z * 8000));
+                                cancel =true;
+                            }
+                        }
+                        case "WallCancel" -> {
+                            if (isInsideBlock()) {
+                                UltraByte.CHAT_MANAGER.message("[OPCat] Meow, the master has switched modes!(=^･ｪ･^=)");
+                                if (mc.player == null) return;
+                                if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L))
+                                    return;
+                                ((EntityVelocityUpdateS2CPacketAccessor) packet).setVelocityX((int) (((packet.getVelocityX() / 8000.0 - mc.player.getVelocity().x) * (horizontal.getValue().doubleValue() / 100.0)) * 8000 + mc.player.getVelocity().x * 8000));
+                                ((EntityVelocityUpdateS2CPacketAccessor) packet).setVelocityY((int) (((packet.getVelocityY() / 8000.0 - mc.player.getVelocity().y) * (vertical.getValue().doubleValue() / 100.0)) * 8000 + mc.player.getVelocity().y * 8000));
+                                ((EntityVelocityUpdateS2CPacketAccessor) packet).setVelocityZ((int) (((packet.getVelocityZ() / 8000.0 - mc.player.getVelocity().z) * (horizontal.getValue().doubleValue() / 100.0)) * 8000 + mc.player.getVelocity().z * 8000));
+                                cancel =true;
+                            }
+                        }
+                        case "WallNewGrim" -> {
+                            //在墙里直接取消
+                            if (isInsideBlock()) {
+                                UltraByte.CHAT_MANAGER.message("[OPCat] Meow, the master has switched modes! (=^･ｪ･^=)");
+                                if (mc.player == null) return;
+                                if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L))
+                                    return;
+                                event.setCancelled(true);
+                                cancel =true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     @SubscribeEvent
     public void onPacketSyncReceive(PacketReceiveSyncEvent event) {
-        //   if (mc.player == null) return;
         if (mode.getValue().equalsIgnoreCase("NewGrim")) {
             if (mc.player == null) return;
+            if (event.getPacket() instanceof PlayerPositionLookS2CPacket){
+                UltraByte.CHAT_MANAGER.message("[OPCat] Big idiot master lagging (=^･ｪ･^=)");
+
+            }
+            if (event.getPacket() instanceof CommandSuggestionsS2CPacket chat){
+                accept = true;
+                //event.setCancelled(true);
+                //你可以选择不显示
+            }
             if (needSkips && ticksToSkip > 0){
                 if (event.getPacket() instanceof CommonPingS2CPacket) {
                     ticksToSkip--;
@@ -118,7 +177,7 @@ public class VelocityModule extends Module {
                     if (ticksToSkip == 0) {
                         ticksToSkip++;
                         //  BlockHitResult result = new BlockHitResult((new Vec3d(mc.player.getBlockZ(), mc.player.getBlockY(), mc.player.getBlockZ())), Direction.UP, mc.player.getBlockPos().down(), false);
-                        BlockHitResult blockHitResult = RotationUtils.customRaycast(mc.player.getYaw(1),90,4.5);
+                        BlockHitResult blockHitResult = RotationUtils.customRaycast(mc.player.getYaw(1), 90, 4.5);
                         if (BlockUtil.getBlock(blockHitResult.getBlockPos()) instanceof AirBlock) {
                             return;
                         }
@@ -138,20 +197,48 @@ public class VelocityModule extends Module {
 
                         float yaw = mc.player.getYaw() + new Random().nextFloat();
                         if (mc.player.prevYaw != yaw || mc.player.prevPitch != 90) {
-                            if(R.getValue()) {
+                            if (R.getValue()) {
                                 Objects.requireNonNull(mc.getNetworkHandler()).sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yaw + 720 * 64, 90, mc.player.isOnGround(), mc.player.horizontalCollision));
                             }
                         } else {
-                            Objects.requireNonNull(mc.getNetworkHandler()).sendPacket(new PlayerMoveC2SPacket.OnGroundOnly(mc.player.isOnGround(),mc.player.horizontalCollision));
+                            Objects.requireNonNull(mc.getNetworkHandler()).sendPacket(new PlayerMoveC2SPacket.OnGroundOnly(mc.player.isOnGround(), mc.player.horizontalCollision));
                         }
                         NetworkUtils.sendSequencedPacket(sequence -> new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, sequence));
                         // mc.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult,);
-
-                        if (ClientUtils.instance.getSkips() == 0) {
-                            ClientUtils.skipTicks(3);
+                        if (!customSkip.getValue())
+                            mc.getNetworkHandler().sendPacket(new RequestCommandCompletionsC2SPacket(0,"/msg ")); // 发送一个命令，等待服务器回复，来测试延迟。
+                        int ticksToSkip = customSkip.getValue() ? skipTicks.getValue().intValue() : 1;
+                        accept = false;
+                        skipping = true;
+                        skips = 0;
+                        if (ClientUtils.instance.runnables.isEmpty()) {
+                            ClientUtils.skipTicks(ticksToSkip);
                             //ClientUtils.addRunnable(() -> GrimDisabler.instance.releasePost(true));
+                            ClientUtils.addRunnable(() ->{
+                                mc.player.lastRenderX = mc.player.getX();
+                                mc.player.lastRenderY = mc.player.getY();
+                                mc.player.lastRenderZ = mc.player.getZ();
+                                mc.player.lastRenderYaw = mc.player.getYaw();
+                                mc.player.lastRenderPitch = mc.player.getPitch();
+                                mc.gameRenderer.tick();
+                                mc.worldRenderer.tick();
+                                mc.getNetworkHandler().sendPacket(ClientTickEndC2SPacket.INSTANCE);
+                            });
+                            if (!customSkip.getValue())
+                                ClientUtils.addRunnable(() ->{
+                                    skips++;
+                                    if (ClientUtils.instance.getSkips() == 1) {
+                                        if (!accept) {
+                                            ClientUtils.skipTicks(2); //如果服务器还未响应则继续。
+                                        } else if (skipping) {
+                                            if (skips < 3)
+                                                ClientUtils.skipTicks(1);
+                                            skipping = false;
+                                        }
+                                    }
+                                });
                         } else {
-                            ClientUtils.skipTicks(3);
+                            ClientUtils.skipTicks(ticksToSkip);
                         }
                         ticksToUpdate = 2;
 
@@ -160,6 +247,7 @@ public class VelocityModule extends Module {
                 }
             }
         }
+
         if (event.getPacket() instanceof EntityStatusS2CPacket pac
                 && pac.getStatus() == 31
                 && pac.getEntity(mc.world) instanceof FishingBobberEntity
@@ -183,20 +271,12 @@ public class VelocityModule extends Module {
 
                     event.setCancelled(true);
                 }
-                case "WallCancel" -> {
-                    if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L)) return;
-                    if (!isInsideBlock()) {
-                        event.setCancelled(false);
-                    }
-                    event.setCancelled(true);
-                }
-                case "Grim" -> {
-
-                }
                 case "NewGrim" -> {
-                    if (mc.player == null) return;
-                    if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L)) return;
-                    grimCancel(event);
+                    if (wall.getValue()) {
+                        if (mc.player == null) return;
+                        if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L)) return;
+                        grimCancel(event);
+                    }
                 }
                 case "Watchdog" -> {
                     if (mc.player == null) return;
@@ -236,19 +316,26 @@ public class VelocityModule extends Module {
                     event.setCancelled(true);
                     cancel = true;
                 }
-                case "WallGrim" -> {
-                    if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L)) return;
-                    if (!isInsideBlock()) {
-                        event.setCancelled(false);
-                    }
-                    event.setCancelled(true);
-                }
-                case "Grim" -> {
-                }
+
                 case "NewGrim" -> {
-                    if (mc.player == null) return;
-                    if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L)) return;
-                    grimCancel(event);
+                    //在墙里直接取消
+                    if (isInsideBlock()) {
+                        UltraByte.CHAT_MANAGER.message("[OPCat] Meow, the master has switched modes!(=^･ｪ･^=) ");
+
+                        if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L)) return;
+                        if (packet.playerKnockback().isPresent())
+                            ((Vec3dAccessor) packet.playerKnockback().get()).setX((float) (packet.playerKnockback().get().getX() * (horizontal.getValue().doubleValue() / 100.0)));
+                        if (packet.playerKnockback().isPresent())
+                            ((Vec3dAccessor) packet.playerKnockback().get()).setY((float) (packet.playerKnockback().get().getY() * (vertical.getValue().doubleValue() / 100.0)));
+                        if (packet.playerKnockback().isPresent())
+                            ((Vec3dAccessor) packet.playerKnockback().get()).setZ((float) (packet.playerKnockback().get().getZ() * (horizontal.getValue().doubleValue() / 100.0)));
+                    } else {
+                        if (wall.getValue()) {
+                            if (mc.player == null) return;
+                            if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L)) return;
+                            grimCancel(event);
+                        }
+                    }
                 }
             }
 
@@ -261,6 +348,9 @@ public class VelocityModule extends Module {
                 //  cancel = true;
             }
         }
+
+
+
         if (tick > 0)
             tick--;
     }
@@ -268,6 +358,7 @@ public class VelocityModule extends Module {
 
     @Override
     public void onEnable() {
+        accept = true;
         tick = 0;
         grimTCancel = 0;
     }
@@ -336,7 +427,7 @@ public class VelocityModule extends Module {
         if (mode.getValue().equalsIgnoreCase("Cancel")) return "0%, 0%";
         if (mode.getValue().equalsIgnoreCase("Grim")) return "Grim";
         if (mode.getValue().equalsIgnoreCase("NewGrim")) if (mc.player != null) {
-            return "V/E% =" + mc.player.getVelocity().y;
+            return "V/E% = 0% 0%";
         }
         return horizontal.getValue().intValue() + "%, " + vertical.getValue().intValue() + "%";
     }
@@ -344,6 +435,6 @@ public class VelocityModule extends Module {
     private void grimCancel(PacketReceiveSyncEvent event) {
         event.setCancelled(true);
         needSkips = true;
-        ticksToSkip = 3;
+        ticksToSkip = 1;
     }
 }

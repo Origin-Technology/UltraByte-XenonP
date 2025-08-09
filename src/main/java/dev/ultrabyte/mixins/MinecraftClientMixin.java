@@ -12,6 +12,7 @@ import dev.ultrabyte.modules.impl.player.FastPlaceModule;
 import dev.ultrabyte.modules.impl.player.MultiTaskModule;
 import dev.ultrabyte.utils.IMinecraft;
 import dev.ultrabyte.utils.system.ClientUtils;
+import dev.ultrabyte.utils.system.FileUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.RunArgs;
 import net.minecraft.client.gui.screen.DeathScreen;
@@ -27,6 +28,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.io.File;
 
 @Mixin(MinecraftClient.class)
 public abstract class MinecraftClientMixin implements IMinecraft {

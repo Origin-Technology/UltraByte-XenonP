@@ -12,7 +12,7 @@ public class ClientUtils implements IMinecraft {
 
     }
     public static ClientUtils instance = new ClientUtils();
-    private List<Runnable> runnables = new ArrayList<Runnable>();
+    public List<Runnable> runnables = new ArrayList<Runnable>();
     private boolean updateC03Packets = false;
     private int skips = 0;
 
