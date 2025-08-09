@@ -83,8 +83,8 @@ public class PistonCrystalModule extends Module {
         if (updateTimer.passedMs(updateDelay.getValue().longValue())) {
             updateTimer.reset();
         } else return;
-
     }
+
     private BlockPos getBestPistonPos(BlockPos cPos) {
         //  ArrayList<BlockPos> surround = new ArrayList<>();
         //        ArrayList<BlockPos> surroundUp = new ArrayList<>();

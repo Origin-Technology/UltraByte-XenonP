@@ -186,6 +186,22 @@ public class RotationManager implements IMinecraft {
         packetRotate(rotations[0], rotations[1]);
     }
 
+    // 平滑设置旋转
+    public void setSmoothRotation(float targetYaw, float targetPitch) {
+        float currentYaw = mc.player.getYaw();
+        float currentPitch = mc.player.getPitch();
+
+        // 平滑因子
+        float smoothFactor = UltraByte.MODULE_MANAGER.getModule(RotationsModule.class).smoothFactor.getValue().intValue();
+
+        // 计算平滑旋转
+        float smoothYaw = currentYaw + (targetYaw - currentYaw) * smoothFactor;
+        float smoothPitch = currentPitch + (targetPitch - currentPitch) * smoothFactor;
+
+        mc.player.setYaw(smoothYaw);
+        mc.player.setPitch(smoothPitch);
+    }
+
     public void SNAPPacketRotate(float yaw, float pitch) {
         switch (UltraByte.MODULE_MANAGER.getModule(RotationsModule.class).snapBackMode.getValue()) {
             case "ServerFull" -> {
@@ -345,6 +361,7 @@ public class RotationManager implements IMinecraft {
 
     // 新增平滑过渡方法（带随机扰动）
 // 改进后的平滑过渡方法
+
     private void smoothRotation(float targetYaw, float targetPitch, RotationsModule module) {
         // 获取配置参数并约束范围
         final float smoothStep = MathHelper.clamp(module.smoothFactor.getValue().intValue(), 0.01f, 1.0f);

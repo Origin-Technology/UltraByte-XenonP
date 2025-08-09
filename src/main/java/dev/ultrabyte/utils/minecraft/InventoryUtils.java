@@ -239,6 +239,43 @@ public class InventoryUtils implements IMinecraft {
         return woodenSlot;
     }
 
+    public static int findBestPiston(int start, int end) {
+        int netheriteSlot = -1;
+        int diamondSlot = -1;
+
+        for (int i = end; i >= start; i--) {
+            ItemStack stack = mc.player.getInventory().getStack(i);
+
+            if (stack.getItem() == Items.PISTON) netheriteSlot = i;
+            if (stack.getItem() == Items.STICKY_PISTON) diamondSlot = i;
+
+        }
+
+        if (netheriteSlot != -1) return netheriteSlot;
+        if (diamondSlot != -1) return diamondSlot;
+
+
+        return diamondSlot;
+    }
+
+    public static int findBestRed(int start, int end) {
+        int netheriteSlot = -1;
+        int diamondSlot = -1;
+
+        for (int i = end; i >= start; i--) {
+            ItemStack stack = mc.player.getInventory().getStack(i);
+
+            if (stack.getItem() == Items.REDSTONE_BLOCK) netheriteSlot = i;
+            if (stack.getItem() == Items.REDSTONE_TORCH) diamondSlot = i;
+
+        }
+
+        if (netheriteSlot != -1) return netheriteSlot;
+        if (diamondSlot != -1) return diamondSlot;
+
+
+        return diamondSlot;
+    }
     public static int findEmptySlot(int start, int end) {
         for (int i = end; i >= start; i--) {
             ItemStack stack = mc.player.getInventory().getStack(i);

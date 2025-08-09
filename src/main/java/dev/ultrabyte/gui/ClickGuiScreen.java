@@ -31,10 +31,10 @@ public class ClickGuiScreen extends Screen {
     public ClickGuiScreen() {
         super(Text.literal(UltraByte.MOD_ID + "-click-gui"));
 
-        int x = 6;
+        int x = 15;
         for(Module.Category category : Module.Category.values()) {
-            frames.add(new Frame(category, x, 3, 100, 13));
-            x += 104;
+            frames.add(new Frame(category, x, 3, 105, 15));
+            x += 109;
         }
 
         this.descriptionFrame = new DescriptionFrame(x, 3, 200, 13);

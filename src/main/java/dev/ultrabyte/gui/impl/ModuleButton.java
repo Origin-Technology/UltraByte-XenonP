@@ -51,7 +51,8 @@ public class ModuleButton extends Button {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if(this.isHovering(mouseX, mouseY) && UltraByte.CLICK_GUI.getDescriptionFrame().getDescription().isEmpty()) UltraByte.CLICK_GUI.getDescriptionFrame().setDescription(this.getDescription());
 
-        Renderer2D.renderQuad(context.getMatrices(), getX() + getPadding(), getY(), getX() + getWidth() - getPadding(), getY() + getHeight() - 1, ClickGuiScreen.getButtonColor(getY(), module.isToggled() ? 80 : 30));
+        Renderer2D.renderQuad(context.getMatrices(), getX(), getY(), getX() + getWidth(), getY() + getHeight() - 1, ClickGuiScreen.getButtonColor(getY(), module.isToggled() ? 80 : 0));
+        UltraByte.FONT_MANAGER.drawTextWithShadow(context, (module.isToggled() ? "" : Formatting.GRAY ) + (open ? "-" : "+"), getX() + getWidth() - 8, getY() + 2, Color.WHITE);
         UltraByte.FONT_MANAGER.drawTextWithShadow(context, (module.isToggled() ? "" : Formatting.GRAY ) + module.getName(), getX() + getTextPadding(), getY() + 2, Color.WHITE);
 
         if(open) {

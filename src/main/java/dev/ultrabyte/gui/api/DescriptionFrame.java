@@ -31,13 +31,13 @@ public class DescriptionFrame {
             setY(mouseY - dragY);
         }
 
-        Renderer2D.renderQuad(context.getMatrices(), x, y, x + width, y + height, ClickGuiScreen.getButtonColor(y, 100));
+    //    Renderer2D.renderQuad(context.getMatrices(), x, y, x + width, y + height, ClickGuiScreen.getButtonColor(y, 100));
         UltraByte.FONT_MANAGER.drawTextWithShadow(context, "Description", x + textPadding, y + 2, Color.WHITE);
         if(!description.isEmpty()) {
             List<String> wrappedText =FormattingUtils.wrapText(description, width - textPadding*2);
             Color color = UltraByte.MODULE_MANAGER.getModule(ClickGuiModule.class).color.getColor();
 
-            Renderer2D.renderQuad(context.getMatrices(), x, y + height, x + width, y + height + (wrappedText.size()* UltraByte.FONT_MANAGER.getHeight()) + 4, UltraByte.MODULE_MANAGER.getModule(ClickGuiModule.class).isRainbow() ? new Color(0, 0, 0, 100) : new Color((int) (color.getRed()*0.3), (int) (color.getGreen()*0.3), (int) (color.getBlue()*0.3), 100));
+        //    Renderer2D.renderQuad(context.getMatrices(), x, y + height, x + width, y + height + (wrappedText.size()* UltraByte.FONT_MANAGER.getHeight()) + 4, UltraByte.MODULE_MANAGER.getModule(ClickGuiModule.class).isRainbow() ? new Color(0, 0, 0, 100) : new Color((int) (color.getRed()*0.3), (int) (color.getGreen()*0.3), (int) (color.getBlue()*0.3), 100));
             int i = 0;
             for(String s : wrappedText) {
                 UltraByte.FONT_MANAGER.drawTextWithShadow(context, s, x + textPadding, y + height + 2 + (UltraByte.FONT_MANAGER.getHeight()*i), Color.WHITE);
