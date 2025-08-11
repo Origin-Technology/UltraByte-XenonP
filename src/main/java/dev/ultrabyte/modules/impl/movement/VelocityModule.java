@@ -130,7 +130,6 @@ public class VelocityModule extends Module {
                         }
                         case "WallCancel" -> {
                             if (isInsideBlock()) {
-                                UltraByte.CHAT_MANAGER.message("[OPCat] Meow, the master has switched modes!(=^･ｪ･^=)");
                                 if (mc.player == null) return;
                                 if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L))
                                     return;
@@ -143,7 +142,6 @@ public class VelocityModule extends Module {
                         case "WallNewGrim" -> {
                             //在墙里直接取消
                             if (isInsideBlock()) {
-                                UltraByte.CHAT_MANAGER.message("[OPCat] Meow, the master has switched modes! (=^･ｪ･^=)");
                                 if (mc.player == null) return;
                                 if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L))
                                     return;
@@ -320,7 +318,6 @@ public class VelocityModule extends Module {
                 case "NewGrim" -> {
                     //在墙里直接取消
                     if (isInsideBlock()) {
-                        UltraByte.CHAT_MANAGER.message("[OPCat] Meow, the master has switched modes!(=^･ｪ･^=) ");
 
                         if (pause.getValue() && !UltraByte.SERVER_MANAGER.getSetbackTimer().hasTimeElapsed(100L)) return;
                         if (packet.playerKnockback().isPresent())

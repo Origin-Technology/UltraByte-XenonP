@@ -96,20 +96,50 @@ public class PistonCrystalModule extends Module {
 
         BlockPos bestPos = null;
         ArrayList<BlockPos> tempPosList = new ArrayList<>();
-        for (BlockPos temp : BlockUtil.getSphere(calcRadius.getValue().floatValue(), cPos.toCenterPos())) {
+        for (BlockPos temp : BlockUtil.getSphere(2, cPos.toCenterPos())) {
             if (canPlace(temp, placeRange.getValue().doubleValue())) {
+                bestPos = temp;
                 tempPosList.add(temp);
             }
         }
-        double range = Float.MIN_VALUE;
-        for (BlockPos temp : tempPosList) {
-            double dis = mc.player.squaredDistanceTo(temp.toCenterPos());
-            if (dis > range) {
-                range = dis;
-                bestPos = temp;
+        return bestPos;
+        // 取最近的pos 但是我先不打算加
+        // double range = Float.MIN_VALUE;
+        //        for (BlockPos temp : tempPosList) {
+        //            double dis = mc.player.squaredDistanceTo(temp.toCenterPos());
+        //            if (dis > range) {
+        //                range = dis;
+        //                bestPos = temp;
+        //            }
+        //        }
+        //        return bestPos;
+    }
+    private BlockPos getBestRedPos(BlockPos pPos) {
+        for (Direction i : Direction.values()) {
+            BlockPos offset = pPos.offset(i);
+            if (canPlace(offset, placeRange.getValue().doubleValue())) {
+                return offset;
             }
         }
-        return bestPos;
+        return null;
+    }
+
+    private ArrayList<BlockPos> getPossibleCPos(PlayerEntity bestTarget) {
+        BlockPos facePos = bestTarget.getBlockPos();
+        BlockPos headPos = facePos.up();
+        ArrayList<BlockPos> cPosList = new ArrayList<>();
+        for (BlockPos temp : BlockUtil.getSphere(2, headPos.toCenterPos())) {
+            if (canPlace(temp, placeRange.getValue().doubleValue())) {
+                cPosList.add(temp);
+            }
+        }
+        for (BlockPos temp : BlockUtil.getSphere(2, facePos.toCenterPos())) {
+            if (canPlace(temp, placeRange.getValue().doubleValue())) {
+                cPosList.add(temp);
+            }
+        }
+        return cPosList;
+
     }
     private boolean canPlaceCrystal(BlockPos pos, PlayerEntity enemy) {
         return (BlockUtil.canClick(pos.down())

@@ -1,5 +1,6 @@
 package dev.ultrabyte.modules.impl.miscellaneous;
 
+import dev.ultrabyte.UltraByte;
 import dev.ultrabyte.events.SubscribeEvent;
 import dev.ultrabyte.events.impl.PlayerUpdateEvent;
 import dev.ultrabyte.modules.Module;
@@ -9,14 +10,19 @@ import dev.ultrabyte.settings.impl.ModeSetting;
 import dev.ultrabyte.settings.impl.NumberSetting;
 import dev.ultrabyte.utils.minecraft.InventoryUtils;
 import dev.ultrabyte.utils.minecraft.NetworkUtils;
+import dev.ultrabyte.utils.minecraft.SoundUtils;
+import dev.ultrabyte.utils.system.FileUtils;
 import dev.ultrabyte.utils.system.Timer;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractItemC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+
+import java.io.File;
 
 import static dev.ultrabyte.modules.impl.miscellaneous.FakeFlyModule.silentSwapEquipChestplate;
 import static dev.ultrabyte.modules.impl.miscellaneous.FakeFlyModule.silentSwapEquipElytra;
@@ -38,6 +44,12 @@ public class FakeFly2Module
     private boolean isElytra = false;
     private Timer fireworkTimer = new Timer();
 
+    @Override
+    public void onEnable() {
+        if (mc.world != null) {
+            FileUtils.playSound(new File("assets/ultrabyte/sound/theworld.ogg"), 1.0f);
+        }
+    }
     @SubscribeEvent
     public void onPlayerUpdate(PlayerUpdateEvent event) {
         if (mc.player == null || mc.world == null) {
@@ -76,7 +88,7 @@ public class FakeFly2Module
                 int firework = InventoryUtils.find(Items.FIREWORK_ROCKET);
                 if (!motion.getValue()) {
                     if (firework != -1
-                            && fireworkTimer.passedMs(fireworkDelay.getValue().intValue())) {
+                            && fireworkTimer.hasTimeElapsed(fireworkDelay.getValue().intValue())) {
                         mc.player.networkHandler.sendPacket
                                 (new ClientCommandC2SPacket(mc.player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
                         useFirework(firework);
@@ -88,7 +100,7 @@ public class FakeFly2Module
                         //  event.setPitch(targetPitch);
                         //   Managers.NETWORK.sendSequencedPacket(seq -> new PlayerMoveC2SPacket.LookAndOnGround(targetYaw, targetPitch, mc.player.isOnGround()));
                         if (firework != -1
-                                && fireworkTimer.passedMs(fireworkDelay.getValue().intValue())) {
+                                && fireworkTimer.hasTimeElapsed(fireworkDelay.getValue().intValue())) {
                             mc.player.networkHandler.sendPacket
                                     (new ClientCommandC2SPacket(mc.player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
 

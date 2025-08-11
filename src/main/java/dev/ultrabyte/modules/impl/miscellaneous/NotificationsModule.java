@@ -17,7 +17,7 @@ import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
 
 import java.util.ArrayList;
 
-@RegisterModule(name = "Notifications", description = "Notifies you in chat whenever something significant happens.", category = Module.Category.MISCELLANEOUS)
+@RegisterModule(name = "Notifications", description = "ies you in chat whenever something significant happens.", category = Module.Category.MISCELLANEOUS)
 public class NotificationsModule extends Module {
     public BooleanSetting totemPops = new BooleanSetting("TotemPops", "Notifies you in chat whenever a player pops a totem.", true);
     public BooleanSetting visualRange = new BooleanSetting("VisualRange", "Notifies you in chat whenever a player enters your render distance.", false);
