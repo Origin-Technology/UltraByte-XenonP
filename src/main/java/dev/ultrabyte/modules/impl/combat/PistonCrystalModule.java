@@ -141,11 +141,10 @@ public class PistonCrystalModule extends Module {
         return cPosList;
 
     }
-    private boolean canPlaceCrystal(BlockPos pos, PlayerEntity enemy) {
+    private boolean canPlaceCrystal(BlockPos pos) {
         return (BlockUtil.canClick(pos.down())
                 && (BlockUtil.getBlock(pos.down()) == Blocks.OBSIDIAN || BlockUtil.getBlock(pos.down()) == Blocks.BEDROCK)
                 && ((a112.getValue() ? BlockUtil.getBlock(pos) == Blocks.AIR : BlockUtil.clientCanPlace(pos))
-                || BlockUtil.hasEntityBlockCrystal(pos.down(),false, true)))
-                && DamageUtils.getCrystalDamage(enemy, enemy.getBoundingBox(), pos, pos, true) > minDamage.getValue().floatValue();
+                || BlockUtil.hasEntityBlockCrystal(pos.down(),false, true)));
     }
 }
