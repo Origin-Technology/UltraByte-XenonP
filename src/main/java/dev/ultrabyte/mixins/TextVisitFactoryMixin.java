@@ -28,7 +28,7 @@ public class TextVisitFactoryMixin implements IMinecraft {
     @ModifyVariable(method = "visitFormatted(Ljava/lang/String;ILnet/minecraft/text/Style;Lnet/minecraft/text/Style;Lnet/minecraft/text/CharacterVisitor;)Z", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private static String replaceText(String value) {
         NameProtectModule module = UltraByte.MODULE_MANAGER.getModule(NameProtectModule.class);
-        if (module.isToggled()) return value.replaceAll(mc.getSession().getUsername(), module.name.getValue());
+        if (module != null && module.isToggled()) return value.replaceAll(mc.getSession().getUsername(), module.name.getValue());
         return value;
     }
 }
