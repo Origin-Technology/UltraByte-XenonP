@@ -1,6 +1,7 @@
 package dev.ultrabyte.commands;
 
 import dev.ultrabyte.UltraByte;
+import dev.ultrabyte.commands.impl.HelpCommand;
 import lombok.Getter;
 import lombok.Setter;
 import dev.ultrabyte.commands.impl.ModuleCommand;
@@ -21,7 +22,7 @@ public class CommandManager {
         UltraByte.EVENT_HANDLER.subscribe(this);
 
         try {
-            for (Class<?> clazz : new Reflections("dev.ultrabyte.commands.impl").getSubTypesOf(Command.class)) {
+            for (Class<?> clazz : new Reflections(HelpCommand.class.getPackageName()).getSubTypesOf(Command.class)) {
                 if (clazz.getAnnotation(RegisterCommand.class) == null) continue;
                 if (clazz == ModuleCommand.class) continue;
 

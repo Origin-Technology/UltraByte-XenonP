@@ -1,6 +1,7 @@
 package dev.ultrabyte.modules;
 
 import dev.ultrabyte.UltraByte;
+import dev.ultrabyte.modules.impl.core.ClickGuiModule;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
 import dev.ultrabyte.events.SubscribeEvent;
@@ -26,7 +27,7 @@ public class ModuleManager implements IMinecraft {
         UltraByte.EVENT_HANDLER.subscribe(this);
 
         try {
-            for (Class<?> clazz : new Reflections("dev.ultrabyte.modules.impl").getSubTypesOf(Module.class)) {
+            for (Class<?> clazz : new Reflections(ClickGuiModule.class.getPackageName()).getSubTypesOf(Module.class)) {
                 if (clazz.getAnnotation(RegisterModule.class) == null) continue;
                 Module module = (Module) clazz.getDeclaredConstructor().newInstance();
 
