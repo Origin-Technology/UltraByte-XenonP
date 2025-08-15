@@ -25,6 +25,7 @@ import java.util.StringJoiner;
 @Getter @Setter
 public class ConfigManager {
     private String currentConfig = "default";
+    public static boolean canSave = true;
 
     public ConfigManager() {
         loadConfig();
@@ -47,6 +48,10 @@ public class ConfigManager {
     }
 
     public void saveConfig() {
+        if (!canSave) {
+            System.out.println("Illegal session status, ignore saving.");
+            return;
+        }
         try {
             FileUtils.createDirectory(UltraByte.MOD_NAME);
             FileUtils.createDirectory(UltraByte.MOD_NAME + "/Configs");

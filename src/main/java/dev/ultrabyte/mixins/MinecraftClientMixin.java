@@ -23,12 +23,14 @@ import net.minecraft.client.option.GameOptions;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.awt.*;
 import java.io.File;
 
 @Mixin(MinecraftClient.class)
@@ -46,6 +48,11 @@ public abstract class MinecraftClientMixin implements IMinecraft {
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;setOverlay(Lnet/minecraft/client/gui/screen/Overlay;)V", shift = At.Shift.BEFORE))
     private void init(RunArgs args, CallbackInfo info) {
         UltraByte.onPostInitialize();
+    }
+
+    @Inject(method = "<init>", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;instance:Lnet/minecraft/client/MinecraftClient;"))
+    private void onInstanceConstruct(RunArgs args, CallbackInfo ci) {
+        System.setProperty("java.awt.headless", "false");
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;runTasks()V", shift = At.Shift.AFTER))
@@ -105,5 +112,18 @@ public abstract class MinecraftClientMixin implements IMinecraft {
         if (UltraByte.MODULE_MANAGER != null && UltraByte.MODULE_MANAGER.getModule(NoHitDelayModule.class).isToggled()) {
             attackCooldown = 0;
         }
+    }
+
+    /**
+     * @author
+     * @reason
+     */
+    @Overwrite
+    private String getWindowTitle() {
+        if (UltraByte.WAYPOINT_MANAGER == null) {
+            return "可能需要几分钟时间连接 XenonAuth 验证服务...";
+        }
+        StringBuilder stringBuilder = new StringBuilder("UltraByte [XenonAuth]");
+        return stringBuilder.toString();
     }
 }
