@@ -120,7 +120,7 @@ public abstract class MinecraftClientMixin implements IMinecraft {
      */
     @Overwrite
     private String getWindowTitle() {
-        if (UltraByte.WAYPOINT_MANAGER == null) {
+        if (UltraByte.name == null) {
             return "可能需要几分钟时间连接 XenonAuth 验证服务...";
         }
         StringBuilder stringBuilder = new StringBuilder("UltraByte [XenonAuth]");
